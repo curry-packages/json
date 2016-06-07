@@ -1,0 +1,10 @@
+{
+  "name": "json",
+  "version": "0.0.1",
+  "author": "Jonas Oberschweiber",
+  "synopsis": "A JSON library for Curry",
+  "source": {
+    "git": "ssh://git@git.ps.informatik.uni-kiel.de:55055/joo/json.git",
+    "tag": "v0.0.1"
+  }
+}

@@ -19,7 +19,7 @@ pJValue =   pTrue
         <|> pObject
 
 pObject :: Parser JValue
-pObject =   JObject <$> (char '{' *> pWhitespace *> pObject' <* pWhitespace <* char '}')
+pObject =   JObject <$> (char '{' *> pWhitespace *> pObject' <* pWhitespace <* char '}' <* pWhitespace)
         <|> JObject <$> (char '{' *> pWhitespace *> char '}' *> yield [])
 
 pObject' :: Parser [(String, JValue)]
@@ -36,6 +36,9 @@ test_pObject_onlyStringKeys = parse pObject "{1: 2}" -=- Nothing
 
 test_pObject_simple :: [Test.EasyCheck.Test]
 test_pObject_simple = parse pObject "{\"test\": 1, \"test2\": false}" -=- Just (JObject [("test", JNumber 1.0), ("test2", JFalse)])
+
+test_pObject_whitespace :: [Test.EasyCheck.Test]
+test_pObject_whitespace = parse pObject "{\n \"test\": 1,\n \"test2\": false\n}" -=- Just (JObject [("test", JNumber 1.0), ("test2", JFalse)])
 
 test_pObject_nested :: [Test.EasyCheck.Test]
 test_pObject_nested = parse pObject "{\"test\": {\"hello\": \"world\"}}" -=- Just (JObject [("test", JObject [("hello", JString "world")])])
@@ -60,10 +63,10 @@ test_pArray_nested :: [Test.EasyCheck.Test]
 test_pArray_nested = parse pArray "[true, [false], [[null]]]" -=- Just (JArray [JTrue, JArray [JFalse], JArray [JArray [JNull]]])
 
 pWhitespace :: Parser ()
-pWhitespace =   char ' '
-            <|> char '\n'
-            <|> char '\r'
-            <|> char '\t'
+pWhitespace =   char ' ' *> pWhitespace
+            <|> char '\n' *> pWhitespace
+            <|> char '\r' *> pWhitespace
+            <|> char '\t' *> pWhitespace
             <|> empty
 
 pTrue :: Parser JValue
