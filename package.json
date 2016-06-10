@@ -4,7 +4,7 @@
   "author": "Jonas Oberschweiber",
   "synopsis": "A JSON library for Curry",
   "dependencies": {
-    "det-parse": ">= 0.0.1"
+    "det-parse": "= 0.0.1"
   },
   "source": {
     "git": "ssh://git@git.ps.informatik.uni-kiel.de:55055/joo/json.git",
