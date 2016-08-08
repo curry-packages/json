@@ -1,3 +1,4 @@
 .curry
+.cpm
 *_PUBLIC.curry
 src/TEST*.curry
