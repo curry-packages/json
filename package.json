@@ -1,6 +1,6 @@
 {
   "name": "json",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Jonas Oberschweiber",
   "synopsis": "A JSON library for Curry",
   "dependencies": {
@@ -8,6 +8,6 @@
   },
   "source": {
     "git": "ssh://git@git.ps.informatik.uni-kiel.de:55055/joo/json.git",
-    "tag": "v0.0.1"
+    "tag": "$version"
   }
 }

@@ -28,19 +28,19 @@ pObject' = (:) <$> (pWhitespace *> pKeyValuePair) <*> (pWhitespace *> char ',' *
 pKeyValuePair :: Parser (String, JValue)
 pKeyValuePair = (,) <$> pString <*> (pWhitespace *> char ':' *> pWhitespace *> pJValue)
 
-test_pObject_empty :: [Test.EasyCheck.Test]
+test_pObject_empty :: Test.EasyCheck.Prop
 test_pObject_empty = parse pObject "{}" -=- Just (JObject [])
 
-test_pObject_onlyStringKeys :: [Test.EasyCheck.Test]
+test_pObject_onlyStringKeys :: Test.EasyCheck.Prop
 test_pObject_onlyStringKeys = parse pObject "{1: 2}" -=- Nothing
 
-test_pObject_simple :: [Test.EasyCheck.Test]
+test_pObject_simple :: Test.EasyCheck.Prop
 test_pObject_simple = parse pObject "{\"test\": 1, \"test2\": false}" -=- Just (JObject [("test", JNumber 1.0), ("test2", JFalse)])
 
-test_pObject_whitespace :: [Test.EasyCheck.Test]
+test_pObject_whitespace :: Test.EasyCheck.Prop
 test_pObject_whitespace = parse pObject "{\n \"test\": 1,\n \"test2\": false\n}" -=- Just (JObject [("test", JNumber 1.0), ("test2", JFalse)])
 
-test_pObject_nested :: [Test.EasyCheck.Test]
+test_pObject_nested :: Test.EasyCheck.Prop
 test_pObject_nested = parse pObject "{\"test\": {\"hello\": \"world\"}}" -=- Just (JObject [("test", JObject [("hello", JString "world")])])
 
 pArray :: Parser JValue
@@ -50,16 +50,16 @@ pArray =   JArray <$> (char '[' *> pWhitespace *> pArray' <* pWhitespace <* char
 pArray' :: Parser [JValue]
 pArray' = (:) <$> (pWhitespace *> pJValue) <*> ((pWhitespace *> char ',' *> pArray') <|> yield [])
 
-test_pArray_empty :: [Test.EasyCheck.Test]
+test_pArray_empty :: Test.EasyCheck.Prop
 test_pArray_empty = parse pArray "[]" -=- Just (JArray [])
 
-test_pArray_single :: [Test.EasyCheck.Test]
+test_pArray_single :: Test.EasyCheck.Prop
 test_pArray_single = parse pArray "[1]" -=- Just (JArray [JNumber 1.0])
 
-test_pArray_multi :: [Test.EasyCheck.Test]
+test_pArray_multi :: Test.EasyCheck.Prop
 test_pArray_multi = parse pArray "[true, false, null]" -=- Just (JArray [JTrue, JFalse, JNull])
 
-test_pArray_nested :: [Test.EasyCheck.Test]
+test_pArray_nested :: Test.EasyCheck.Prop
 test_pArray_nested = parse pArray "[true, [false], [[null]]]" -=- Just (JArray [JTrue, JArray [JFalse], JArray [JArray [JNull]]])
 
 pWhitespace :: Parser ()
@@ -107,52 +107,52 @@ pTwoByteHex = hexToInt <$> ((:) <$> pHexDigit <*> ((:) <$> pHexDigit <*> ((:) <$
 hexToInt :: String -> Int
 hexToInt s = foldl1 ((+).(16*)) (map digitToInt s)
 
-test_pCharSequence_simple :: [Test.EasyCheck.Test]
+test_pCharSequence_simple :: Test.EasyCheck.Prop
 test_pCharSequence_simple = parse pCharSequence "test" -=- Just "test"
 
-test_pCharSequence_noDoubleQuote :: [Test.EasyCheck.Test]
+test_pCharSequence_noDoubleQuote :: Test.EasyCheck.Prop
 test_pCharSequence_noDoubleQuote = parse pCharSequence "te\"st" -=- Nothing
 
-test_pCharSequence_noStandaloneBackslash :: [Test.EasyCheck.Test]
+test_pCharSequence_noStandaloneBackslash :: Test.EasyCheck.Prop
 test_pCharSequence_noStandaloneBackslash = parse pCharSequence "He\\world" -=- Nothing
 
-test_pCharSequence_escapedDoubleQuote :: [Test.EasyCheck.Test]
+test_pCharSequence_escapedDoubleQuote :: Test.EasyCheck.Prop
 test_pCharSequence_escapedDoubleQuote = parse pCharSequence "Hello \\\"World\\\"" -=- Just "Hello \"World\""
 
-test_pCharSequence_escapedBackslash :: [Test.EasyCheck.Test]
+test_pCharSequence_escapedBackslash :: Test.EasyCheck.Prop
 test_pCharSequence_escapedBackslash = parse pCharSequence "He\\\\world" -=- Just "He\\world"
 
-test_pCharSequence_escapedSlash :: [Test.EasyCheck.Test]
+test_pCharSequence_escapedSlash :: Test.EasyCheck.Prop
 test_pCharSequence_escapedSlash = parse pCharSequence "He\\/world" -=- Just "He/world"
 
-test_pCharSequence_escapedBackspace :: [Test.EasyCheck.Test]
+test_pCharSequence_escapedBackspace :: Test.EasyCheck.Prop
 test_pCharSequence_escapedBackspace = parse pCharSequence "He\\bworld" -=- Just "He\bworld"
 
-test_pCharSequence_escapedFormFeed :: [Test.EasyCheck.Test]
+test_pCharSequence_escapedFormFeed :: Test.EasyCheck.Prop
 test_pCharSequence_escapedFormFeed = parse pCharSequence "He\\fworld" -=- Just "He\fworld"
 
-test_pCharSequence_escapedNewline :: [Test.EasyCheck.Test]
+test_pCharSequence_escapedNewline :: Test.EasyCheck.Prop
 test_pCharSequence_escapedNewline = parse pCharSequence "He\\nworld" -=- Just "He\nworld"
 
-test_pCharSequence_escapedCarriageReturn :: [Test.EasyCheck.Test]
+test_pCharSequence_escapedCarriageReturn :: Test.EasyCheck.Prop
 test_pCharSequence_escapedCarriageReturn = parse pCharSequence "He\\rworld" -=- Just "He\rworld"
 
-test_pCharSequence_escapedTab :: [Test.EasyCheck.Test]
+test_pCharSequence_escapedTab :: Test.EasyCheck.Prop
 test_pCharSequence_escapedTab = parse pCharSequence "He\\tworld" -=- Just "He\tworld"
 
-test_pCharSequence_twoEscapes :: [Test.EasyCheck.Test]
+test_pCharSequence_twoEscapes :: Test.EasyCheck.Prop
 test_pCharSequence_twoEscapes = parse pCharSequence "He\\r\\nWorld" -=- Just "He\r\nWorld"
 
-test_pCharSequence_escapedUnicodeChar :: [Test.EasyCheck.Test]
+test_pCharSequence_escapedUnicodeChar :: Test.EasyCheck.Prop
 test_pCharSequence_escapedUnicodeChar = parse pCharSequence "Hello \\u2603 World" -=- Just "Hello ☃ World"
 
-test_pCharSequence_escapedUnicodeRequiresFourDigits :: [Test.EasyCheck.Test]
+test_pCharSequence_escapedUnicodeRequiresFourDigits :: Test.EasyCheck.Prop
 test_pCharSequence_escapedUnicodeRequiresFourDigits = parse pCharSequence "Hello \\u26 World" -=- Nothing
 
-test_pString_simple :: [Test.EasyCheck.Test]
+test_pString_simple :: Test.EasyCheck.Prop
 test_pString_simple = parse pString "\"Hello, World\"" -=- Just "Hello, World"
 
-test_pString_complex :: [Test.EasyCheck.Test]
+test_pString_complex :: Test.EasyCheck.Prop
 test_pString_complex = parse pString "\"Hello \\r\\n \\u2603 World\"" -=- Just "Hello \r\n ☃ World"
 
 pJNumber :: Parser JValue
