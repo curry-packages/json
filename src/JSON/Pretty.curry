@@ -3,9 +3,11 @@ module JSON.Pretty (ppJSON, ppJValue) where
 import JSON.Data
 import Pretty
 
+--- Pretty print a JSON value with the default options of Curry's Pretty module.
 ppJSON :: JValue -> String
 ppJSON j = pPrint (ppJValue j)
 
+--- Turn a JSON value into a Doc from Curry's Pretty module. 
 ppJValue :: JValue -> Doc
 ppJValue JTrue = text "true"
 ppJValue JFalse = text "false"

@@ -6,9 +6,12 @@ import Float
 import DetParse
 import Test.EasyCheck
 
+--- Parses a JSON string into a JValue. Returns Nothing if the string could not
+--- be parsed.
 parseJSON :: String -> Maybe JValue
 parseJSON = parse pJValue
 
+--- Parser for a JValue
 pJValue :: Parser JValue
 pJValue =   pTrue
         <|> pFalse
