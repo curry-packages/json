@@ -4,6 +4,7 @@
   "author": "Jonas Oberschweiber",
   "maintainer": "Michael Hanus <mh@informatik.uni-kiel.de>",
   "synopsis": "A JSON library for Curry",
+    "category": [ "Data", "Web" ],
   "dependencies": {
     "det-parse": "= 0.0.1"
   },
