@@ -4,7 +4,7 @@ import JSON.Data
 import Char
 import Float
 import DetParse
-import Test.EasyCheck
+import Test.Prop
 
 --- Parses a JSON string into a JValue. Returns Nothing if the string could not
 --- be parsed.
