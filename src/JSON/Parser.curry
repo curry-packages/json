@@ -15,12 +15,12 @@ parseJSON = parse pJValue
 --- Parser for a JValue
 pJValue :: Parser JValue
 pJValue =   pTrue
-        <|> pFalse
-        <|> pNull
-        <|> pJString
-        <|> pJNumber
-        <|> pArray
-        <|> pObject
+        <!> pFalse
+        <!> pNull
+        <!> pJString
+        <!> pJNumber
+        <!> pArray
+        <!> pObject
 
 pObject :: Parser JValue
 pObject =   JObject <$> (char '{' *> pWhitespace *> pObject' <* pWhitespace <* char '}' <* pWhitespace)
@@ -68,10 +68,10 @@ test_pArray_nested = parse pArray "[true, [false], [[null]]]" -=- Just (JArray [
 
 pWhitespace :: Parser ()
 pWhitespace =   char ' ' *> pWhitespace
-            <|> char '\n' *> pWhitespace
-            <|> char '\r' *> pWhitespace
-            <|> char '\t' *> pWhitespace
-            <|> empty
+            <!> char '\n' *> pWhitespace
+            <!> char '\r' *> pWhitespace
+            <!> char '\t' *> pWhitespace
+            <!> empty
 
 pTrue :: Parser JValue
 pTrue = word "true" *> yield JTrue
@@ -90,19 +90,19 @@ pString = char '"' *> pCharSequence <* char '"'
 
 pCharSequence :: Parser String
 pCharSequence =   (++) <$> (char '\\' *> pEscaped) <*> pCharSequence
-              <|> (:) <$> check (\c -> c /= '"' && c /= '\\') anyChar <*> pCharSequence
-              <|> yield ""
+              <!> (:) <$> check (\c -> c /= '"' && c /= '\\') anyChar <*> pCharSequence
+              <!> yield ""
 
 pEscaped :: Parser String
 pEscaped =   char '"' *> yield "\""
-         <|> char '\\' *> yield "\\"
-         <|> char '/' *> yield "/"
-         <|> char 'b' *> yield "\b"
-         <|> char 'f' *> yield "\f"
-         <|> char 'n' *> yield "\n"
-         <|> char 'r' *> yield "\r"
-         <|> char 't' *> yield "\t"
-         <|> ((:[]) . chr) <$> (char 'u' *> pTwoByteHex)
+         <!> char '\\' *> yield "\\"
+         <!> char '/' *> yield "/"
+         <!> char 'b' *> yield "\b"
+         <!> char 'f' *> yield "\f"
+         <!> char 'n' *> yield "\n"
+         <!> char 'r' *> yield "\r"
+         <!> char 't' *> yield "\t"
+         <!> ((:[]) . chr) <$> (char 'u' *> pTwoByteHex)
 
 pTwoByteHex :: Parser Int
 pTwoByteHex = hexToInt <$> ((:) <$> pHexDigit <*> ((:) <$> pHexDigit <*> ((:) <$> pHexDigit <*> ((:[]) <$> pHexDigit))))
@@ -164,7 +164,7 @@ pJNumber = JNumber <$> pNumber
 
 pNumber :: Parser Float
 pNumber =   (0-) <$> (char '-' *> pPositiveFloat)
-        <|> pPositiveFloat
+        <!> pPositiveFloat
 
 -- number without decimal point, decimal digits, base 10 exponent
 toFloat :: Int -> Int -> Int -> Float
@@ -175,11 +175,11 @@ pPositiveFloat :: Parser Float
 pPositiveFloat = (uncurry toFloat) <$> pWithDecimalPoint <*> pExponent
 
 pExponent :: Parser Int
-pExponent =   (char 'e' <|> char 'E') *> (char '-' *> yield negate <|> char '+' *> yield id <|> yield id) <*> pInt
+pExponent =   (char 'e' <!> char 'E') *> (char '-' *> yield negate <!> char '+' *> yield id <!> yield id) <*> pInt
           <!> yield 0
 
 pWithDecimalPoint :: Parser (Int, Int)
-pWithDecimalPoint = combine <$> some pDigit <*> (char '.' *> some pDigit <|> yield "")
+pWithDecimalPoint = combine <$> some pDigit <*> (char '.' *> some pDigit <!> yield "")
   where
     s2i cs = foldl1 ((+).(10*)) (map (\c' -> ord c' - ord '0') cs)
     combine n d = (s2i (n ++ d), negate $ length d)
