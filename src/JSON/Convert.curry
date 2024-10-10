@@ -11,10 +11,10 @@ module JSON.Convert where
 import Data.Maybe ( catMaybes, isJust )
 import JSON.Data
 
---- Type class with two conversion operations between values and
+--- Type class with two conversion operations between values and their
 --- JSON representation. Since a JSON value might not contain
 --- a correct representation of a standard value, the operation
---- `fromJSON` returns a `Maybe`.
+--- `fromJSON` returns a `Maybe` value.
 --- The additional operations on value lists are used for a better
 --- JSON conversion of strings.
 class ConvertJSON a where
