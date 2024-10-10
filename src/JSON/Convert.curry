@@ -6,7 +6,7 @@
 --- @version October 2024
 ------------------------------------------------------------------------------
 
-module JSON.Convert ( ConvertJSON(..) ) where
+module JSON.Convert where
 
 import Data.Maybe ( catMaybes, isJust )
 import JSON.Data
@@ -24,18 +24,13 @@ class ConvertJSON a where
   toJSONList :: [a] -> JValue
   fromJSONList :: JValue -> Maybe [a]
 
-  toJSONList = toJSONListDefault
-  fromJSONList = fromJSONListDefault
+  toJSONList = JArray . map toJSON
 
-toJSONListDefault :: ConvertJSON a => [a] -> JValue
-toJSONListDefault xs = JArray (map toJSON xs)
-
-fromJSONListDefault :: ConvertJSON a => JValue -> Maybe [a]
-fromJSONListDefault jv = case jv of
-  JArray xs -> let ys = map fromJSON xs
-               in if all isJust ys then Just (catMaybes ys)
-                                   else Nothing
-  _         -> Nothing
+  fromJSONList jv = case jv of
+    JArray xs -> let ys = map fromJSON xs
+                 in if all isJust ys then Just (catMaybes ys)
+                                     else Nothing
+    _         -> Nothing
 
 --- Instance for Booleans.
 instance ConvertJSON Bool where
@@ -47,7 +42,7 @@ instance ConvertJSON Bool where
     JTrue  -> Just True
     _      -> Nothing
 
---- Instance for characters.
+--- Instance for characters and strings.
 instance ConvertJSON Char where
   toJSON c = JString [c]
 
@@ -56,6 +51,7 @@ instance ConvertJSON Char where
     _           -> Nothing
 
   toJSONList s = JString s
+
   fromJSONList jv = case jv of
     JString s -> Just s
     _         -> Nothing
@@ -69,6 +65,7 @@ instance ConvertJSON Float where
     _         -> Nothing
 
 --- Instance for integers.
+--- Use rounding to check whether it is a reasonable integer.
 instance ConvertJSON Int where
   toJSON x = JNumber (fromInt x)
 

@@ -21,5 +21,8 @@ test_convertFloat x = fromJSON (toJSON x) -=- Just x
 test_convertMaybeBool :: Maybe Bool -> Prop
 test_convertMaybeBool x = fromJSON (toJSON x) -=- Just x
 
+test_convertList :: [String] -> Prop
+test_convertList x = fromJSON (toJSON x) -=- Just x
+
 test_convertPair :: (Char,String) -> Prop
 test_convertPair x = fromJSON (toJSON x) -=- Just x
