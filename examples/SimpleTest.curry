@@ -53,4 +53,5 @@ testParsePrintIArray i1 i2 = always $ eqParsePrint (JArray [JInt i1, JInt i2])
 -- Test field setting.
 testSetField :: Int -> Prop
 testSetField i =
-  getField (setField (toJObject []) "value" (JInt i)) "value" -=- Just (JInt i)
+  lookupName "value" (insertField "value" (JInt i) (toJObject []))
+  -=- Just (JInt i)

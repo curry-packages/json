@@ -8,7 +8,7 @@
 
 module JSON.Data
   ( JValue(..)
-  , JObject, fromJObject, toJObject, getField, setField
+  , JObject, fromJObject, toJObject, lookupName, insertField
   ) where
 
 import Data.List ( nubBy, partition )
@@ -60,17 +60,17 @@ fromJObject (JSONObject jo) = jo
 toJObject :: [(String,JValue)] -> JObject
 toJObject = JSONObject . nubBy (\(k1, _) (k2, _) -> k1 == k2)
 
---- Gets the value with a given name from a JSON object, if it exists.
-getField :: JObject -> String -> Maybe JValue
-getField (JSONObject jo) n = lookup n jo
+--- Retrieves the JSON value with a given name from a JSON object, if it exists.
+lookupName :: String -> JObject -> Maybe JValue
+lookupName name (JSONObject jo) = lookup name jo
 
---- Sets the value associated to the given name in a JSON object.
+--- Inserts a name / JSON value pair in a JSON object.
 --- If the name already exists, the existing value is overwritten.
-setField :: JObject -> String -> JValue -> JObject
-setField (JSONObject jo) name val = JSONObject (set jo)
+insertField :: String -> JValue -> JObject -> JObject
+insertField name val (JSONObject jo) = JSONObject (insert jo)
  where
-  set []                     = [(name,val)]
-  set ((k,v):fs) | k == name = (name,val) : fs
-                 | otherwise = (k,v) : set fs
+  insert []                     = [(name,val)]
+  insert ((k,v):fs) | k == name = (name,val) : fs
+                    | otherwise = (k,v) : insert fs
                 
 ------------------------------------------------------------------------------
