@@ -3,7 +3,7 @@
 --- to convert Curry values to JSON values and vice versa.
 ---
 --- @author Michael Hanus
---- @version October 2024
+--- @version February 2025
 ------------------------------------------------------------------------------
 
 module JSON.Convert where
@@ -34,13 +34,11 @@ class ConvertJSON a where
 
 --- Instance for Booleans.
 instance ConvertJSON Bool where
-  toJSON False = JFalse
-  toJSON True  = JTrue
+  toJSON b = JBool b
 
   fromJSON jv = case jv of
-    JFalse -> Just False
-    JTrue  -> Just True
-    _      -> Nothing
+    JBool b -> Just b
+    _       -> Nothing
 
 --- Instance for characters and strings.
 instance ConvertJSON Char where
@@ -65,14 +63,12 @@ instance ConvertJSON Float where
     _         -> Nothing
 
 --- Instance for integers.
---- Use rounding to check whether it is a reasonable integer.
 instance ConvertJSON Int where
-  toJSON x = JNumber (fromInt x)
+  toJSON n = JInt n
 
   fromJSON jv = case jv of
-    JNumber x -> let i = round x
-                 in if fromInt i == x then Just i else Nothing
-    _         -> Nothing
+    JInt n -> Just n
+    _      -> Nothing
 
 --- Instance for lists.
 instance ConvertJSON a => ConvertJSON [a] where
@@ -91,13 +87,15 @@ instance ConvertJSON a => ConvertJSON (Maybe a) where
 
 --- Instance for `Either` values.
 instance (ConvertJSON a, ConvertJSON b) => ConvertJSON (Either a b) where
-  toJSON (Left  x) = JObject [("Left",  toJSON x)]
-  toJSON (Right y) = JObject [("Right", toJSON y)]
+  toJSON (Left  x) = JObject $ toJObject [("Left",  toJSON x)]
+  toJSON (Right y) = JObject $ toJObject [("Right", toJSON y)]
 
   fromJSON jv = case jv of
-    JObject [("Left", v)] -> fmap Left  (fromJSON v)
-    JObject [("Right",v)] -> fmap Right (fromJSON v)
-    _                     -> Nothing
+    JObject jo -> case fromJObject jo of
+                    [("Left", v)] -> fmap Left  (fromJSON v)
+                    [("Right",v)] -> fmap Right (fromJSON v)
+                    _             -> Nothing
+    _          -> Nothing
 
 --- Instance for `Ordering` values.
 instance ConvertJSON Ordering where
@@ -110,10 +108,12 @@ instance ConvertJSON Ordering where
 
 --- Instance for pairs of values.
 instance (ConvertJSON a, ConvertJSON b) => ConvertJSON (a,b) where
-  toJSON (x,y) = JObject [("1", toJSON x), ("2", toJSON y)]
+  toJSON (x,y) = JObject $ toJObject [("1", toJSON x), ("2", toJSON y)]
 
   fromJSON jv = case jv of
-    JObject [("1",v1), ("2",v2)] -> do x <- fromJSON v1
-                                       y <- fromJSON v2
-                                       return (x,y)
-    _                            -> Nothing
+    JObject jo -> case fromJObject jo of
+                    [("1",v1), ("2",v2)] -> do x <- fromJSON v1
+                                               y <- fromJSON v2
+                                               return (x,y)
+                    _                    -> Nothing
+    _          -> Nothing

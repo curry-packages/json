@@ -4,7 +4,7 @@
 --- and returns a `Maybe` value of type `JValue`.
 ---
 --- @author Jonas Oberschweiber
---- @version October 2024
+--- @version February 2025
 ------------------------------------------------------------------------------
 
 module JSON.Parser ( parseJSON ) where
@@ -16,8 +16,8 @@ import Test.Prop
 
 import Prelude hiding (some, empty, (<|>), (<$>), (<*>), (<*), (*>))
 
---- Parses a JSON string into a JValue. Returns Nothing if the string could not
---- be parsed.
+--- Parses a JSON string into a JValue.
+--- Returns `Nothing` if the string could not be parsed.
 parseJSON :: String -> Maybe JValue
 parseJSON = parse (pWhitespace *> pJValue)
 
@@ -35,7 +35,9 @@ pObject :: Parser JValue
 pObject = char '{' *> pWhitespace *> pObjectNB
 
 pObjectNB :: Parser JValue
-pObjectNB = JObject <$> ((char '}' *> yield []) <!> (pObjectFields <* char '}'))
+pObjectNB =
+  JObject . toJObject
+  <$> ((char '}' *> yield []) <!> (pObjectFields <* char '}'))
 
 pObjectFields :: Parser [(String, JValue)]
 pObjectFields = (:) <$>
@@ -46,7 +48,7 @@ pKeyValuePair =
   (,) <$> pString <*> (pWhitespace *> char ':' *> pWhitespace *> pJValue)
 
 test_pObject_empty :: Prop
-test_pObject_empty = parse pObject "{}" -=- Just (JObject [])
+test_pObject_empty = parse pObject "{}" -=- Just (JObject $ toJObject [])
 
 test_pObject_onlyStringKeys :: Prop
 test_pObject_onlyStringKeys = parse pObject "{1: 2}" -=- Nothing
@@ -54,17 +56,18 @@ test_pObject_onlyStringKeys = parse pObject "{1: 2}" -=- Nothing
 test_pObject_simple :: Prop
 test_pObject_simple =
   parse pObject "{\"test\": 1, \"test2\": false}"
-  -=- Just (JObject [("test", JNumber 1.0), ("test2", JFalse)])
+  -=- Just (JObject $ toJObject [("test", JInt 1), ("test2", JBool False)])
 
 test_pObject_whitespace :: Prop
 test_pObject_whitespace =
   parse pObject "{\n \"test\": 1,\n \"test2\": false\n}"
-  -=- Just (JObject [("test", JNumber 1.0), ("test2", JFalse)])
+  -=- Just (JObject $ toJObject [("test", JInt 1), ("test2", JBool False)])
 
 test_pObject_nested :: Prop
 test_pObject_nested =
-  parse pObject "{\"test\": {\"hello\": \"world\"}}"
-  -=- Just (JObject [("test", JObject [("hello", JString "world")])])
+  parse pObject "{\"test\": {\"hello\": \"world\"}}" -=-
+  Just (JObject $ toJObject
+          [("test", JObject $ toJObject [("hello", JString "world")])])
 
 pArray :: Parser JValue
 pArray = char '[' *> pWhitespace *> pArrayNB
@@ -79,17 +82,21 @@ pArrayElems = (:) <$>
 test_pArray_empty :: Prop
 test_pArray_empty = parse pArray "[]" -=- Just (JArray [])
 
-test_pArray_single :: Prop
-test_pArray_single = parse pArray "[1]" -=- Just (JArray [JNumber 1.0])
+test_pArray_single1 :: Prop
+test_pArray_single1 = parse pArray "[1]" -=- Just (JArray [JInt 1])
+
+test_pArray_single2 :: Prop
+test_pArray_single2 = parse pArray "[2.0]" -=- Just (JArray [JNumber 2.0])
 
 test_pArray_multi :: Prop
 test_pArray_multi =
-  parse pArray "[true, false, null]" -=- Just (JArray [JTrue, JFalse, JNull])
+  parse pArray "[true, false, null]"
+  -=- Just (JArray [JBool True, JBool False, JNull])
 
 test_pArray_nested :: Prop
 test_pArray_nested =
   parse pArray "[true, [false], [[null]]]"
-  -=- Just (JArray [JTrue, JArray [JFalse], JArray [JArray [JNull]]])
+  -=- Just (JArray [JBool True, JArray [JBool False], JArray [JArray [JNull]]])
 
 {-
 -- Definition with parser combinators:
@@ -107,10 +114,10 @@ pWhitespace s@(c:cs) | c `elem` [' ','\n','\r','\t'] = pWhitespace cs
                      | otherwise                     = [((),s)]
 
 pTrue :: Parser JValue
-pTrue = word "true" *> yield JTrue
+pTrue = word "true" *> yield (JBool True)
 
 pFalse :: Parser JValue
-pFalse = word "false" *> yield JFalse
+pFalse = word "false" *> yield (JBool False)
 
 pNull :: Parser JValue
 pNull = word "null" *> yield JNull
@@ -211,32 +218,37 @@ test_pString_complex =
   parse pString "\"Hello \\r\\n \\u2603 World\"" -=- Just "Hello \r\n ☃ World"
 
 pJNumber :: Parser JValue
-pJNumber = JNumber <$> pNumber
+pJNumber =  (char '-' *> pPositiveFloat True)
+        <!> pPositiveFloat False
 
-pNumber :: Parser Float
-pNumber =   (0-) <$> (char '-' *> pPositiveFloat)
-        <!> pPositiveFloat
+-- parse a number with optional decimal point and option exponent
+pPositiveFloat :: Bool -> Parser JValue
+pPositiveFloat neg = (uncurry toJNum) <$> pWithOptDecimalPoint <*> pExponent
+ where
+  toJNum n Nothing  Nothing  = JInt (if neg then negate n else n)
+  toJNum n Nothing  (Just e) = toJNumber (fromInt n * (exp 10 e))
+  toJNum n (Just d) Nothing  = toJNumber (fromInt n * (exp 10 d))
+  toJNum n (Just d) (Just e) = toJNumber ((fromInt n) * (exp 10 (d + e)))
 
--- number without decimal point, decimal digits, base 10 exponent
-toFloat :: Int -> Int -> Int -> Float
-toFloat n d e = (fromInt n) * (exp 10 (d + e))
- where exp x y = if y < 0 then 1 / (x ^ (0 - y)) else (x ^ y)
+  toJNumber x = JNumber (if neg then negate x else x)
+  exp x y = if y < 0 then 1 / (x ^ (0 - y)) else (x ^ y)
 
-pPositiveFloat :: Parser Float
-pPositiveFloat = (uncurry toFloat) <$> pWithDecimalPoint <*> pExponent
 
-pExponent :: Parser Int
+pExponent :: Parser (Maybe Int)
 pExponent =
       (char 'e' <!> char 'E') *>
-       (char '-' *> yield negate <!> char '+' *> yield id <!> yield id) <*> pInt
-  <!> yield 0
+       (Just <$>
+         ((char '-' *> yield negate <!> char '+' *> yield id <!> yield id)
+          <*> pInt))
+  <!> yield Nothing
 
-pWithDecimalPoint :: Parser (Int, Int)
-pWithDecimalPoint =
+pWithOptDecimalPoint :: Parser (Int, Maybe Int)
+pWithOptDecimalPoint =
   combine <$> some pDigit <*> (char '.' *> some pDigit <!> yield "")
  where
   s2i cs = foldl1 ((+).(10*)) (map (\c' -> ord c' - ord '0') cs)
-  combine n d = (s2i (n ++ d), negate $ length d)
+  combine n d = (s2i (n ++ d),
+                 if null d then Nothing else Just (negate $ length d))
 
 pInt :: Parser Int
 pInt =

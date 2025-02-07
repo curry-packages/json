@@ -4,7 +4,7 @@
 --- format.
 ---
 --- @author Jonas Oberschweiber, Michael Hanus
---- @version January 2025
+--- @version February 2025
 ------------------------------------------------------------------------------
 
 module JSON.Pretty (ppJSON, ppJValue) where
@@ -21,14 +21,13 @@ ppJSON j = pPrint (ppJValue j)
 --- Turn a JSON value into a Doc from Curry's Pretty module.
 --- JSON numbers are printed as integers if appropriate.
 ppJValue :: JValue -> Doc
-ppJValue JTrue        = text "true"
-ppJValue JFalse       = text "false"
+ppJValue (JBool b)    = text (if b then "true" else "false")
 ppJValue JNull        = text "null"
-ppJValue (JNumber x)  = let i = round x
-                        in if fromInt i == x then int i else float x
+ppJValue (JInt n)     = int n
+ppJValue (JNumber x)  = float x
 ppJValue (JString s)  = text $ showJSONString s
 ppJValue (JArray vs)  = ppJArray vs
-ppJValue (JObject ps) = ppJObject ps
+ppJValue (JObject ps) = ppJObject (fromJObject ps)
 
 ppJArray :: [JValue] -> Doc
 ppJArray vs = listSpaced $ map ppJValue vs
