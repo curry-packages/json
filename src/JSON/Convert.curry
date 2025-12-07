@@ -20,14 +20,14 @@ class ConvertJSON a where
   -- | Convert a value into its JSON representation.
   toJSON :: a -> JValue
 
-  -- | Convert a JSON representainto into its JSON rerpresentation.
+  -- | Convert a JSON representation into its corresponding value.
   fromJSON :: JValue -> Maybe a
 
   -- | Convert a list of values into its JSON rerpresentation.
   --   As a default, a JSON array is used to represent the list of values.
   toJSONList :: [a] -> JValue
 
-  -- | Convert a JSON representainto into a list of values.
+  -- | Convert a JSON representation into the corresponding list of values.
   fromJSONList :: JValue -> Maybe [a]
 
   toJSONList = JArray . map toJSON
