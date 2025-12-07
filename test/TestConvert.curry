@@ -8,8 +8,8 @@ import JSON.Data
 import JSON.Convert
 
 -----------------------------------------------------------------------------
--- Test cases to check the binary representation against the built-in integer
--- operations.
+-- Test cases to check whether the conversion to and from JSON is correct
+-- for some basic types.
 -----------------------------------------------------------------------------
 
 test_convertInt :: Int -> Prop
