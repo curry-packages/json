@@ -4,7 +4,6 @@
 --
 -- This library contains the definition of a data type to represent
 -- JSON values.
---
 ------------------------------------------------------------------------------
 
 module JSON.Data
@@ -16,13 +15,14 @@ import Data.List ( nubBy, partition )
 
 -- | Abstract representation of a JSON value.
 data JValue =
-    JBool   Bool    -- ^ a Boolean value (`true` or `false` in JSON)                
-  | JNull           -- ^ null, i.e. a missing value                                 
+    JBool   Bool    -- ^ a Boolean value (`true` or `false` in JSON)
+  | JNull           -- ^ null, i.e. a missing value
   | JString String  -- ^ a JSON string
-  | JInt    Int     -- ^ a JSON number without decimal point and exponent           
-  | JNumber Float   -- ^ a JSON number (numbers are always floats in JSON)          
-  | JArray [JValue] -- ^ a JSON array, represented by a list of JValues             
-  | JObject JObject -- ^ a JSON object, represented by a map from Strings to JValues
+  | JInt    Int     -- ^ a JSON number without decimal point and exponent
+  | JNumber Float   -- ^ a JSON number (numbers are always floats in JSON)
+  | JArray [JValue] -- ^ a JSON array, represented by a list of JValues
+  | JObject JObject -- ^ a JSON object, represented by a map
+                    --   from Strings to JValues
   deriving (Eq, Show)
 
 -- | A JSON object is just some representation of a mapping from names

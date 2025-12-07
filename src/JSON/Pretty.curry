@@ -1,10 +1,10 @@
 ------------------------------------------------------------------------------
---- This library contains the implementation of a pretty-printer for
---- JSON values so that one can show these values in the standard textual
---- format.
----
---- @author Jonas Oberschweiber, Michael Hanus
---- @version February 2025
+-- | Author:  Jonas Oberschweiber, Michael Hanus
+--   Version: February 2025
+--
+-- This library contains the implementation of a pretty-printer for
+-- JSON values so that one can show these values in the standard textual
+-- format.
 ------------------------------------------------------------------------------
 
 module JSON.Pretty (ppJSON, ppJValue) where
@@ -14,12 +14,13 @@ import Data.Char ( intToDigit )
 import JSON.Data
 import Text.Pretty
 
---- Pretty print a JSON value with the default options of Curry's Pretty module.
+--- | Pretty print a JSON value with the default options of
+--    Curry's module `Text.Pretty`.
 ppJSON :: JValue -> String
 ppJSON j = pPrint (ppJValue j)
 
---- Turn a JSON value into a Doc from Curry's Pretty module.
---- JSON numbers are printed as integers if appropriate.
+--- | Turn a JSON value into a Doc from Curry's Pretty module.
+-- JSON numbers are printed as integers if appropriate.
 ppJValue :: JValue -> Doc
 ppJValue (JBool b)    = text (if b then "true" else "false")
 ppJValue JNull        = text "null"

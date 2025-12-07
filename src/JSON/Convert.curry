@@ -1,9 +1,8 @@
-------------------------------------------------------------------------------
---- This library defines a type class and instances for standard types
---- to convert Curry values to JSON values and vice versa.
----
---- @author Michael Hanus
---- @version February 2025
+-- | Author : Michael Hanus
+--   Version: February 2025
+--
+-- This library defines a type class and instances for standard types
+-- to convert Curry values to JSON values and vice versa.
 ------------------------------------------------------------------------------
 
 module JSON.Convert where
@@ -11,17 +10,24 @@ module JSON.Convert where
 import Data.Maybe ( catMaybes, isJust )
 import JSON.Data
 
---- Type class with two conversion operations between values and their
---- JSON representation. Since a JSON value might not contain
---- a correct representation of a standard value, the operation
---- `fromJSON` returns a `Maybe` value.
---- The additional operations on value lists are used for a better
---- JSON conversion of strings.
+-- | The type class `ConvertJSON` defines conversion operations
+--   between values and their JSON representation.
+--   Since a JSON value might not contain a correct representation
+--   of a standard value, the operation `fromJSON` returns a `Maybe` value.
+--   The additional operations on value lists are used for a better
+--   JSON conversion of strings.
 class ConvertJSON a where
+  -- | Convert a value into its JSON representation.
   toJSON :: a -> JValue
+
+  -- | Convert a JSON representainto into its JSON rerpresentation.
   fromJSON :: JValue -> Maybe a
 
+  -- | Convert a list of values into its JSON rerpresentation.
+  --   As a default, a JSON array is used to represent the list of values.
   toJSONList :: [a] -> JValue
+
+  -- | Convert a JSON representainto into a list of values.
   fromJSONList :: JValue -> Maybe [a]
 
   toJSONList = JArray . map toJSON
@@ -32,7 +38,7 @@ class ConvertJSON a where
                                      else Nothing
     _         -> Nothing
 
---- Instance for Booleans.
+-- Instance for Booleans.
 instance ConvertJSON Bool where
   toJSON b = JBool b
 
@@ -40,7 +46,7 @@ instance ConvertJSON Bool where
     JBool b -> Just b
     _       -> Nothing
 
---- Instance for characters and strings.
+-- Instance for characters and strings.
 instance ConvertJSON Char where
   toJSON c = JString [c]
 
@@ -54,7 +60,7 @@ instance ConvertJSON Char where
     JString s -> Just s
     _         -> Nothing
 
---- Instance for floats.
+-- Instance for floats.
 instance ConvertJSON Float where
   toJSON x = JNumber x
 
@@ -62,7 +68,7 @@ instance ConvertJSON Float where
     JNumber n -> Just n
     _         -> Nothing
 
---- Instance for integers.
+-- Instance for integers.
 instance ConvertJSON Int where
   toJSON n = JInt n
 
@@ -70,13 +76,13 @@ instance ConvertJSON Int where
     JInt n -> Just n
     _      -> Nothing
 
---- Instance for lists.
+-- Instance for lists.
 instance ConvertJSON a => ConvertJSON [a] where
   toJSON = toJSONList
 
   fromJSON = fromJSONList
 
---- Instance for `Maybe` values.
+-- Instance for `Maybe` values.
 instance ConvertJSON a => ConvertJSON (Maybe a) where
   toJSON Nothing  = JNull
   toJSON (Just x) = toJSON x
@@ -85,7 +91,7 @@ instance ConvertJSON a => ConvertJSON (Maybe a) where
     JNull -> Just Nothing
     _     -> fmap Just (fromJSON jv)
 
---- Instance for `Either` values.
+-- Instance for `Either` values.
 instance (ConvertJSON a, ConvertJSON b) => ConvertJSON (Either a b) where
   toJSON (Left  x) = JObject $ toJObject [("Left",  toJSON x)]
   toJSON (Right y) = JObject $ toJObject [("Right", toJSON y)]
@@ -97,7 +103,7 @@ instance (ConvertJSON a, ConvertJSON b) => ConvertJSON (Either a b) where
                     _             -> Nothing
     _          -> Nothing
 
---- Instance for `Ordering` values.
+-- Instance for `Ordering` values.
 instance ConvertJSON Ordering where
   toJSON x = JString (show x)
 
@@ -106,7 +112,7 @@ instance ConvertJSON Ordering where
                                  _        -> Nothing
     _         -> Nothing
 
---- Instance for pairs of values.
+-- Instance for pairs of values.
 instance (ConvertJSON a, ConvertJSON b) => ConvertJSON (a,b) where
   toJSON (x,y) = JObject $ toJObject [("1", toJSON x), ("2", toJSON y)]
 
@@ -117,3 +123,5 @@ instance (ConvertJSON a, ConvertJSON b) => ConvertJSON (a,b) where
                                                return (x,y)
                     _                    -> Nothing
     _          -> Nothing
+
+------------------------------------------------------------------------------

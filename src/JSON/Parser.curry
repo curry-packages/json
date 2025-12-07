@@ -1,10 +1,10 @@
 ------------------------------------------------------------------------------
---- This library contains the implementation of a parser for JSON values,
---- i.e., an operation `parseJSON` which reads a textual JSON representation
---- and returns a `Maybe` value of type `JValue`.
----
---- @author Jonas Oberschweiber
---- @version February 2025
+-- | Author:  Jonas Oberschweiber
+--   Version: February 2025
+--
+-- This library contains the implementation of a parser for JSON values,
+-- i.e., an operation `parseJSON` which reads a textual JSON representation
+-- and returns a `Maybe` value of type `JValue`.
 ------------------------------------------------------------------------------
 
 module JSON.Parser ( parseJSON ) where
@@ -16,12 +16,12 @@ import Test.Prop
 
 import Prelude hiding (some, empty, (<|>), (<$>), (<*>), (<*), (*>))
 
---- Parses a JSON string into a JValue.
---- Returns `Nothing` if the string could not be parsed.
+--- | Parses a JSON string into a JValue.
+--    Returns `Nothing` if the string could not be parsed.
 parseJSON :: String -> Maybe JValue
 parseJSON = parse (pWhitespace *> pJValue)
 
---- Parser for a JValue with whitespace at the end.
+--- | Parser for a JValue with whitespace at the end.
 pJValue :: Parser JValue
 pJValue = ( pTrue
         <!> pFalse
@@ -256,3 +256,5 @@ pInt =
 
 pDigit :: Parser Char
 pDigit = check isDigit anyChar
+
+------------------------------------------------------------------------------
